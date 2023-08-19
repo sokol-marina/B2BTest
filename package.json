@@ -1,0 +1,29 @@
+{
+  "name": "qatestproject",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx wdio wdio.conf.js",
+    "test_ip": "./node_modules/.bin/wdio run wdio.conf.js --suite ip",
+    "test_page": "./node_modules/.bin/wdio run wdio.conf.js --suite example"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@wdio/cli": "^8.11.2",
+    "axios": "^1.4.0",
+    "chai": "^4.3.7",
+    "chrome-modheader": "^2.0.7",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@wdio/local-runner": "^8.11.2",
+    "@wdio/mocha-framework": "^8.11.0",
+    "@wdio/spec-reporter": "^8.11.2",
+    "chai": "^4.3.7",
+    "chromedriver": "^115.0.1",
+    "wdio-chromedriver-service": "^8.1.1"
+  }
+}
