@@ -13,20 +13,17 @@ class ElementUtil {
         return headerText;
     }
 
-
-    clickElement(selector) {
-        const element = $(selector);
-        element.waitForExist({ 
-            timeout: 5000,
-            timeoutMsg: `Element ${selector} taking too long to exist` // Custom error message on timeout
-    });
-        element.click;
+    getElement(selector) {
+        const el = $(selector);
+        el.waitForExist({ timeout: 5000 });
+        return el;
     }
 
     navigateToPage(pagePath) {
         const url = `https://np.a.nytimes.com/svc/nyt-secure/testing/set-cookie?ip_address=${pagePath}`;
         browser.url(url);
     }
+
 
 }
 module.exports = new ElementUtil();
