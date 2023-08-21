@@ -1,6 +1,8 @@
 const assert = require('chai').assert;
 const expect = require('chai').expect;
 const makeIP = require('./makeIP');
+const generateRandomIpListsWithinRange = require('./randomeIPList');
+
 
 const chromeModheader = require('chrome-modheader');
 const elementUtil = require('../util/elementUtil');
@@ -9,53 +11,80 @@ const elementUtil = require('../util/elementUtil');
 const messageElement = 'span.richText__weight--light';
 const headerElement = '.welcomeAdLayout__text p span';
 
-const expectedMessage = "Activate now for unlimited articles, courtesy of Villanova University. No payment needed."
+const expectedMessage = "Activate now for unlimited articles, courtesy of The University of Georgia. No payment needed."
 const expectedHeader = 'Unlock your complimentary access.';
+const expectedCTA = 'ACTIVATE NOW';
 
 let start = '153.104.%.%';
-
-
 const end = '153.104.255.255';
 
-describe('Iframe Test', () => {
-    it('should click a button inside an "Updated our terms" iframe', async () => {
-        await browser.url('/');
-        await browser.waitUntil(() => {
-            return $('.css-1fzhd9j').isExisting();
-        }, {
-            timeout: 10000, // Maximum time to wait in milliseconds
-            timeoutMsg: 'Search element did not become available'
-        });
-        const searchElement = $('.css-1fzhd9j');
-        // Now that the search element is available, you can interact with it
-        searchElement.click();
+const ipRanges = [
+    [[12, 8, 195, 96], [12, 8, 195, 127]],
+    [[12, 193, 48, 128], [12, 193, 48, 191]]
+];
+const NumberOfCheckPerRange = 2;
 
+
+describe('Iframe Test', () => {
+    it('should agree to the updated Terms', async () => {
+        await browser.url('/');
+        // Check if the search element is existing
+        const isSearchElementExisting = await $('.css-1fzhd9j').isExisting();
+
+        if (isSearchElementExisting) {
+            // Wait for the search element to become available
+            await browser.waitUntil(
+                async () => {
+                    return $('.css-1fzhd9j').isExisting();
+                },
+                {
+                    timeout: 10000, // Maximum time to wait in milliseconds
+                    timeoutMsg: 'Search element did not become available'
+                }
+            );
+
+            // Get and interact with the search element
+            const searchElement = $('.css-1fzhd9j');
+            await searchElement.click();
+
+            // Add assertions or further interactions as needed
+        } else {
+            console.log('Updated Terms window is not displaying');
+        }
     });
 });
 
 
 describe('My Login application', async () => {
     it('open the main page with ip address', async () => {
-        //await browser.url('/');
-        let tokens = start.split('.');
-        let list = await makeIP(tokens, 0, 0, end);
-        let newList = await Object.entries(list).slice(0, 2).map(entry => entry[1]);
-        for (const el of newList) {
-            await browser.url(chromeModheader.getAddHeaderUrl('fastly-client-ip', el));
-            await browser.pause(2000);
-            await browser.url('/');
+        // Number of IP addresses in each list
 
-            var actualMessage = await elementUtil.getElementText(messageElement);
-            const actualHeader = await elementUtil.getElementText(headerElement);
+        const listOfLists = generateRandomIpListsWithinRange(ipRanges, NumberOfCheckPerRange);
+        const maxLength = Math.max(...listOfLists.map(innerArray => innerArray.length));
 
-            expect(actualMessage.replace("\n", " ")).to.be.equal(expectedMessage);
-            const btn = 'a.welcomeAdLayout__button';
+        for (let i = 0; i < maxLength; i++) {
+            for (const innerArray of listOfLists) {
+                if (i < innerArray.length) {
+                    const ip = innerArray[i];
+                    await browser.url(chromeModheader.getAddHeaderUrl('fastly-client-ip', innerArray[i]));
+                    await browser.pause(1000);
+                    await browser.url('/');
+                    await browser.pause(1000);
+                    console.log(ip);
 
-            const element = elementUtil.getElement(btn);
-            assert.equal(actualHeader, expectedHeader);
-            assert.equal(await elementUtil.getElementText(btn), 'ACTIVATE NOW');
-            assert.equal(await element.getAttribute('href'), 'http://www.accessnyt.com/');
+                    var actualMessage = await elementUtil.getElementText(messageElement);
+                    const actualHeader = await elementUtil.getElementText(headerElement);
+
+                    expect(actualMessage.replace("\n", " ")).to.be.equal(expectedMessage, `The Asset header should be  ${expectedMessage}`);
+                    expect(actualHeader).to.equal(expectedHeader, `The Asset header should be  ${expectedHeader}`);
+                    expect(await elementUtil.getElementText('a.welcomeAdLayout__button')).to.equal(expectedCTA, `The CTA should have text: ${expectedCTA}`);
+                    expect(await elementUtil.getElement('a.welcomeAdLayout__button').getAttribute('href')).to.equal('http://www.accessnyt.com/', "The CTA should have text: 'http://www.accessnyt.com/'");
+
+                }
+                else { console.log('Check ramge of IPs') }
+            }
         }
+
     });
 });
 
@@ -93,7 +122,7 @@ describe('Window Handling Test', async () => {
             let desiredWindowHandle = windowHandles[2];
             await browser.switchToWindow(desiredWindowHandle);
             const newWindowPageSource = await browser.getPageSource();
-            
+
             const expectedURL = 'https://nytimesineducation.com/access-nyt/';
             expect(await browser.getUrl()).to.equal(expectedURL, `URL should match ${expectedURL}`);
             // Perform an action to verify the click behavior using newWindowPageSource
@@ -105,7 +134,7 @@ describe('Window Handling Test', async () => {
             const oldWindowPageSource = await browser.getPageSource();
             console.log('NYT Page title:', await browser.getTitle(), '\n');
             assert.equal(await element.getAttribute('href'), 'http://www.accessnyt.com/');
-           
+
 
         } else {
             console.log('New window handle not found.');
