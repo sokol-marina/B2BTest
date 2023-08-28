@@ -1,12 +1,12 @@
 const assert = require('chai').assert;
 const expect = require('chai').expect;
-const makeIP = require('./makeIP');
 const generateRandomIpListsWithinRange = require('./randomeIPList');
+require('dotenv').config();
 
+const { Eyes, Target } = require('@applitools/eyes-webdriverio');
 
 const chromeModheader = require('chrome-modheader');
 const elementUtil = require('../util/elementUtil');
-
 
 const messageElement = 'span.richText__weight--light';
 const headerElement = '.welcomeAdLayout__text p span';
@@ -15,8 +15,6 @@ const expectedMessage = "Activate now for unlimited articles, courtesy of The Un
 const expectedHeader = 'Unlock your complimentary access.';
 const expectedCTA = 'ACTIVATE NOW';
 
-let start = '153.104.%.%';
-const end = '153.104.255.255';
 
 const ipRanges = [
     [[12, 8, 195, 96], [12, 8, 195, 127]],
@@ -25,54 +23,86 @@ const ipRanges = [
 const NumberOfCheckPerRange = 2;
 
 
-describe('Iframe Test', () => {
-    it('should agree to the updated Terms', async () => {
-        await browser.url('/');
-        // Check if the search element is existing
-        const isSearchElementExisting = await $('.css-1fzhd9j').isExisting();
+describe('QA B2B Assets testing', () => {
 
-        if (isSearchElementExisting) {
+    // Test-specific objects
+    let eyes;
+
+    before(async () => {
+        eyes = new Eyes();
+        eyes.setApiKey(process.env.APPLITOOLS_API_KEY);
+        await browser.waitUntil(async () => {
+            try {
+                await eyes.open(browser, 'Metered Assets New', 'Welcome Banner Test');
+                return true; // Return true to indicate success
+            } catch (error) {
+                console.error('Error occurred during eyes.open:', error);
+                return false; // Return false to continue waiting
+            }
+        }, {
+            timeout: 40000, // Maximum time to wait in milliseconds
+            timeoutMsg: 'Eyes.open did not complete successfully'
+        });
+    });
+
+    after(async () => {
+        await eyes.close();
+        await browser.deleteSession();
+    });
+
+    it('should successfully click the "Updated our terms" button inside an iframe', async () => {
+
+        await browser.url('/')
+        try {
             // Wait for the search element to become available
             await browser.waitUntil(
                 async () => {
                     return $('.css-1fzhd9j').isExisting();
                 },
                 {
-                    timeout: 10000, // Maximum time to wait in milliseconds
+                    timeout: 5000, // Maximum time to wait in milliseconds
                     timeoutMsg: 'Search element did not become available'
                 }
             );
 
             // Get and interact with the search element
-            const searchElement = $('.css-1fzhd9j');
+            const searchElement = elementUtil.getElement('.css-1fzhd9j');
             await searchElement.click();
+            console.log('Agreed to the Updated Terms ');
+
 
             // Add assertions or further interactions as needed
-        } else {
-            console.log('Updated Terms window is not displaying');
+        } catch (error) {
+            console.log('Updated Terms window is not displaying', `${error}`);
         }
     });
-});
 
-
-describe('My Login application', async () => {
     it('open the main page with ip address', async () => {
-        // Number of IP addresses in each list
 
+
+        // Number of IP addresses in each list
         const listOfLists = generateRandomIpListsWithinRange(ipRanges, NumberOfCheckPerRange);
         const maxLength = Math.max(...listOfLists.map(innerArray => innerArray.length));
 
         for (let i = 0; i < maxLength; i++) {
             for (const innerArray of listOfLists) {
                 if (i < innerArray.length) {
-                    const ip = innerArray[i];
-                    await browser.url(chromeModheader.getAddHeaderUrl('fastly-client-ip', innerArray[i]));
-                    await browser.pause(1000);
+
+
+                    const ipAddress = innerArray[i];
+                    console.log(`Testing with IP address: ${ipAddress}`);
+
+                    await browser.url(chromeModheader.getAddHeaderUrl('fastly-client-ip', ipAddress));
+                    await browser.pause(500);
                     await browser.url('/');
                     await browser.pause(1000);
-                    console.log(ip);
 
-                    var actualMessage = await elementUtil.getElementText(messageElement);
+                    // Capture screenshot using Applitools Eyes
+                    const testName = `IP address ${ipAddress}`;
+                    // Find the banner element
+                    const bannerElement = await elementUtil.getElement('.welcomeAdLayout');
+
+                    var actualMessage = await elementUtil.getElementText(messageElement); //span.richText__weight--light
                     const actualHeader = await elementUtil.getElementText(headerElement);
 
                     expect(actualMessage.replace("\n", " ")).to.be.equal(expectedMessage, `The Asset header should be  ${expectedMessage}`);
@@ -80,15 +110,18 @@ describe('My Login application', async () => {
                     expect(await elementUtil.getElementText('a.welcomeAdLayout__button')).to.equal(expectedCTA, `The CTA should have text: ${expectedCTA}`);
                     expect(await elementUtil.getElement('a.welcomeAdLayout__button').getAttribute('href')).to.equal('http://www.accessnyt.com/', "The CTA should have text: 'http://www.accessnyt.com/'");
 
+                    await eyes.check(testName, Target.region(bannerElement));
+
                 }
+
                 else { console.log('Check ramge of IPs') }
             }
+
         }
 
     });
-});
 
-describe('Window Handling Test', async () => {
+
     it('should click the add and verify the Educational Page', async () => {
         await browser.url('/');
         const element = elementUtil.getElement('a.welcomeAdLayout__button');
@@ -141,7 +174,11 @@ describe('Window Handling Test', async () => {
         }
 
     });
+
 });
+
+
+
 
 //describe('Data Layer Test', () => {
 //    it('should fetch data layer', async () => {
