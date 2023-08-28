@@ -24,23 +24,17 @@ function generateRandomIpAddressesInRange(min, max, count) {
     return ipAddresses;
 }
 
-module.exports = function generateRandomIpListsWithinRange(minIpParts, maxIpParts, listCount, ipCountPerList) {
+module.exports = function generateRandomIpListsWithinRange(ipRanges, ipCountPerRange) {
     const listOfLists = [];
 
-    for (let i = 0; i < listCount; i++) {
-        const randomIpAddresses = generateRandomIpAddressesInRange(minIpParts, maxIpParts, ipCountPerList);
+    for (const range of ipRanges) {
+        const minIpParts = range[0];
+        const maxIpParts = range[1];
+        
+        const randomIpAddresses = generateRandomIpAddressesInRange(minIpParts, maxIpParts, ipCountPerRange);
         listOfLists.push(randomIpAddresses);
     }
 
     return listOfLists;
 };
 
-const minIpParts = [153, 4, 0, 0];
-const maxIpParts = [153, 104, 255, 255];
-const listCount = 10; // Number of lists
-const ipCountPerList = 10; // Number of IP addresses in each list
-
-const randomListOfLists = generateRandomIpListsWithinRange(minIpParts, maxIpParts, listCount, ipCountPerList);
-
-console.log('Generated random list of lists of IP addresses:');
-console.log(randomListOfLists);

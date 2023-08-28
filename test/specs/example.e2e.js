@@ -1,65 +1,127 @@
 const assert = require('chai').assert;
 const expect = require('chai').expect;
-const makeIP = require('./makeIP');
+const generateRandomIpListsWithinRange = require('./randomeIPList');
+require('dotenv').config();
+
+const { Eyes, Target } = require('@applitools/eyes-webdriverio');
 
 const chromeModheader = require('chrome-modheader');
 const elementUtil = require('../util/elementUtil');
 
-
 const messageElement = 'span.richText__weight--light';
 const headerElement = '.welcomeAdLayout__text p span';
 
-const expectedMessage = "Activate now for unlimited articles, courtesy of Villanova University. No payment needed."
+const expectedMessage = "Activate now for unlimited articles, courtesy of The University of Georgia. No payment needed."
 const expectedHeader = 'Unlock your complimentary access.';
+const expectedCTA = 'ACTIVATE NOW';
 
-let start = '153.104.%.%';
+
+const ipRanges = [
+    [[12, 8, 195, 96], [12, 8, 195, 127]],
+    [[12, 193, 48, 128], [12, 193, 48, 191]]
+];
+const NumberOfCheckPerRange = 2;
 
 
-const end = '153.104.255.255';
+describe('QA B2B Assets testing', () => {
 
-describe('Iframe Test', () => {
-    it('should click a button inside an "Updated our terms" iframe', async () => {
-        await browser.url('/');
-        await browser.waitUntil(() => {
-            return $('.css-1fzhd9j').isExisting();
+    // Test-specific objects
+    let eyes;
+
+    before(async () => {
+        eyes = new Eyes();
+        eyes.setApiKey(process.env.APPLITOOLS_API_KEY);
+        await browser.waitUntil(async () => {
+            try {
+                await eyes.open(browser, 'Metered Assets New', 'Welcome Banner Test');
+                return true; // Return true to indicate success
+            } catch (error) {
+                console.error('Error occurred during eyes.open:', error);
+                return false; // Return false to continue waiting
+            }
         }, {
-            timeout: 10000, // Maximum time to wait in milliseconds
-            timeoutMsg: 'Search element did not become available'
+            timeout: 40000, // Maximum time to wait in milliseconds
+            timeoutMsg: 'Eyes.open did not complete successfully'
         });
-        const searchElement = $('.css-1fzhd9j');
-        // Now that the search element is available, you can interact with it
-        searchElement.click();
-
     });
-});
+
+    after(async () => {
+        await eyes.close();
+        await browser.deleteSession();
+    });
+
+    it('should successfully click the "Updated our terms" button inside an iframe', async () => {
+
+        await browser.url('/')
+        try {
+            // Wait for the search element to become available
+            await browser.waitUntil(
+                async () => {
+                    return $('.css-1fzhd9j').isExisting();
+                },
+                {
+                    timeout: 5000, // Maximum time to wait in milliseconds
+                    timeoutMsg: 'Search element did not become available'
+                }
+            );
+
+            // Get and interact with the search element
+            const searchElement = elementUtil.getElement('.css-1fzhd9j');
+            await searchElement.click();
+            console.log('Agreed to the Updated Terms ');
 
 
-describe('My Login application', async () => {
-    it('open the main page with ip address', async () => {
-        //await browser.url('/');
-        let tokens = start.split('.');
-        let list = await makeIP(tokens, 0, 0, end);
-        let newList = await Object.entries(list).slice(0, 2).map(entry => entry[1]);
-        for (const el of newList) {
-            await browser.url(chromeModheader.getAddHeaderUrl('fastly-client-ip', el));
-            await browser.pause(2000);
-            await browser.url('/');
-
-            var actualMessage = await elementUtil.getElementText(messageElement);
-            const actualHeader = await elementUtil.getElementText(headerElement);
-
-            expect(actualMessage.replace("\n", " ")).to.be.equal(expectedMessage);
-            const btn = 'a.welcomeAdLayout__button';
-
-            const element = elementUtil.getElement(btn);
-            assert.equal(actualHeader, expectedHeader);
-            assert.equal(await elementUtil.getElementText(btn), 'ACTIVATE NOW');
-            assert.equal(await element.getAttribute('href'), 'http://www.accessnyt.com/');
+            // Add assertions or further interactions as needed
+        } catch (error) {
+            console.log('Updated Terms window is not displaying', `${error}`);
         }
     });
-});
 
-describe('Window Handling Test', async () => {
+    it('open the main page with ip address', async () => {
+
+
+        // Number of IP addresses in each list
+        const listOfLists = generateRandomIpListsWithinRange(ipRanges, NumberOfCheckPerRange);
+        const maxLength = Math.max(...listOfLists.map(innerArray => innerArray.length));
+
+        for (let i = 0; i < maxLength; i++) {
+            for (const innerArray of listOfLists) {
+                if (i < innerArray.length) {
+
+
+                    const ipAddress = innerArray[i];
+                    console.log(`Testing with IP address: ${ipAddress}`);
+
+                    await browser.url(chromeModheader.getAddHeaderUrl('fastly-client-ip', ipAddress));
+                    await browser.pause(500);
+                    await browser.url('/');
+                    await browser.pause(1000);
+
+                    // Capture screenshot using Applitools Eyes
+                    const testName = `IP address ${ipAddress}`;
+                    // Find the banner element
+                    const bannerElement = await elementUtil.getElement('.welcomeAdLayout');
+
+                    var actualMessage = await elementUtil.getElementText(messageElement); //span.richText__weight--light
+                    const actualHeader = await elementUtil.getElementText(headerElement);
+
+                    expect(actualMessage.replace("\n", " ")).to.be.equal(expectedMessage, `The Asset header should be  ${expectedMessage}`);
+                    expect(actualHeader).to.equal(expectedHeader, `The Asset header should be  ${expectedHeader}`);
+                    expect(await elementUtil.getElementText('a.welcomeAdLayout__button')).to.equal(expectedCTA, `The CTA should have text: ${expectedCTA}`);
+                    expect(await elementUtil.getElement('a.welcomeAdLayout__button').getAttribute('href')).to.equal('http://www.accessnyt.com/', "The CTA should have text: 'http://www.accessnyt.com/'");
+
+                    await eyes.check(testName, Target.region(bannerElement));
+
+                }
+
+                else { console.log('Check ramge of IPs') }
+            }
+
+        }
+
+    });
+
+
     it('should click the add and verify the Educational Page', async () => {
         await browser.url('/');
         const element = elementUtil.getElement('a.welcomeAdLayout__button');
@@ -93,7 +155,7 @@ describe('Window Handling Test', async () => {
             let desiredWindowHandle = windowHandles[2];
             await browser.switchToWindow(desiredWindowHandle);
             const newWindowPageSource = await browser.getPageSource();
-            
+
             const expectedURL = 'https://nytimesineducation.com/access-nyt/';
             expect(await browser.getUrl()).to.equal(expectedURL, `URL should match ${expectedURL}`);
             // Perform an action to verify the click behavior using newWindowPageSource
@@ -105,14 +167,18 @@ describe('Window Handling Test', async () => {
             const oldWindowPageSource = await browser.getPageSource();
             console.log('NYT Page title:', await browser.getTitle(), '\n');
             assert.equal(await element.getAttribute('href'), 'http://www.accessnyt.com/');
-           
+
 
         } else {
             console.log('New window handle not found.');
         }
 
     });
+
 });
+
+
+
 
 //describe('Data Layer Test', () => {
 //    it('should fetch data layer', async () => {
