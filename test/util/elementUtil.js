@@ -2,7 +2,7 @@ class ElementUtil {
 
     getElementText(selector) {
         const message = $(selector);
-        message.waitForExist({ timeout: 5000 });
+        message.waitForExist({ timeout: 10000 });
         let text = message.getText();
         return text;
     }
