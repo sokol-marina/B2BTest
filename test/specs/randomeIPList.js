@@ -1,3 +1,4 @@
+// randomeIPList.js
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -33,8 +34,10 @@ module.exports = function generateRandomIpListsWithinRange(ipRanges, ipCountPerR
         
         const randomIpAddresses = generateRandomIpAddressesInRange(minIpParts, maxIpParts, ipCountPerRange);
         listOfLists.push(randomIpAddresses);
+        listOfLists.push([minIpParts.join('.'), maxIpParts.join('.')]);
     }
 
     return listOfLists;
 };
+
 

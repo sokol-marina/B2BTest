@@ -1,0 +1,1 @@
+{"total":2,"items":[{"uid":"8d4889426fb24eceffe43e738aa3e5f8","name":"QA B2B Assets testing","statistic":{"failed":0,"broken":0,"skipped":0,"passed":5,"unknown":0,"total":5}},{"uid":"b9409d327e3d8d982c166df3e0c4b13f","name":"Data Layer Test","statistic":{"failed":0,"broken":0,"skipped":1,"passed":0,"unknown":0,"total":1}}]}

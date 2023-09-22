@@ -24,6 +24,23 @@ class ElementUtil {
         browser.url(url);
     }
 
-
+    waitForElementToBeClickable(element) {
+        return browser.waitUntil(
+            () => element.isClickable(),
+            {
+                timeout: 10000,
+                timeoutMsg: 'Element was not clickable within 10 seconds.'
+            }
+        );
+    }
+    
+    clickElement(element) {
+        const searchElement = this.getElement(element);
+        searchElement.click();
+    } catch(error) {
+        console.log(`Error clicking element with selector "${selector}"`, error);
+        throw error;
+    }
 }
+
 module.exports = new ElementUtil();
