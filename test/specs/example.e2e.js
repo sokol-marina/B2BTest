@@ -5,7 +5,7 @@ const chromeModheader = require('chrome-modheader');
 const generateRandomIpListsWithinRange = require('./randomeIPList');
 const { handleNewWindowAndVerify } = require('./windowHandling');
 const { iterateListOfLists } = require('../config/mainPage')
-const { eyes, setupEyes, tearDownEyes, captureScreenshotsEyes, compareScreenshotsEyes } = require('../config/eyesSetup');
+const { captureBaselineScreenshotsEyes, compareScreenshotsEyes } = require('../config/eyesSetup');
 
 const elementUtil = require('../util/elementUtil');
 
@@ -95,18 +95,11 @@ describe('Data Layer Test', () => {
 
 describe('QA B2B Assets testing', () => {
 
-   // before(async () => {
-   //     await setupEyes();
-   // });
-
-    //after(async () => {
-    //    await tearDownEyes();
-    //});
-
     it('should successfully click the "Updated our terms" button inside an iframe', async () => {
 
         await browser.url('/')
-        await elementUtil.clickElement('.css-1fzhd9j')
+        const cta = await elementUtil.getElement('.css-1fzhd9j');
+        cta.click();
     });
 
     it('open the main page with ip address', async () => {
@@ -128,16 +121,17 @@ describe('QA B2B Assets testing', () => {
                     expect(actualHeader).to.equal(expectedHeader, `The Asset header should be  ${expectedHeader}`);
                     expect(await elementUtil.getElementText('a.welcomeAdLayout__button')).to.equal(expectedCTA, `The CTA should have text: ${expectedCTA}`);
 
-                    // Capture screenshot using Applitools Eyes
+                    //Capture screenshot using Applitools Eyes
                     if (isFirstIteration) {
                         // Capture the first screenshot as the baseline using Applitools Eyes
-                        await captureScreenshotsEyes(ipAddress);
+                        await captureBaselineScreenshotsEyes(ipAddress);
                         isFirstIteration = false;
                     } else {
                         // Capture subsequent screenshots and compare them to the baseline
                         await browser.pause(1000);
                         await compareScreenshotsEyes(ipAddress);
                     }
+                    console.log('   Finished processing IP address.');
                 }
             }
         }

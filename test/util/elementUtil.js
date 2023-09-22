@@ -33,14 +33,8 @@ class ElementUtil {
             }
         );
     }
-    
-    clickElement(element) {
-        const searchElement = this.getElement(element);
-        searchElement.click();
-    } catch(error) {
-        console.log(`Error clicking element with selector "${selector}"`, error);
-        throw error;
-    }
+
+
 }
 
 module.exports = new ElementUtil();
