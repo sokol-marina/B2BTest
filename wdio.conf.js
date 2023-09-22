@@ -1,6 +1,11 @@
 const chromeModheader = require('chrome-modheader');
+const allure = require('allure-commandline')
 exports.config = {
-    logLevel: 'warn',
+    user: 'marinasukhova_5fyuFN',
+    key: 'zv7eCWzcRo3qnKivf3vr',
+    //services: [['browserstack', { browserstackLocal: true }]],
+
+    logLevel: 'error',
     //
     // ====================
     // Runner Configuration
@@ -114,8 +119,7 @@ exports.config = {
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
-    services: [
-        'chromedriver'],
+    services: ['chromedriver'],
 
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
@@ -137,7 +141,11 @@ exports.config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-    reporters: ['spec'],
+    reporters: ['spec', ['allure', {
+        outputDir: 'allure-results',
+        disableWebdriverStepsReporting: true,
+        disableWebdriverScreenshotsReporting: true,
+    }]],
 
 
     //
@@ -145,7 +153,7 @@ exports.config = {
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
-        timeout: 50000
+        timeout: 500000
     },
     //
     // =====
