@@ -2,10 +2,11 @@ const { assert, expect } = require('chai');
 
 // Define the window handling function
 async function handleNewWindowAndVerify(browser, elementUtil) {
+    
     // Wait until the ACTIVATE NOW BTN becomes clickable
     const BannerCTA = $('a.welcomeAdLayout__button');
     await elementUtil.waitForElementToBeClickable(BannerCTA);
-    assert.equal(await BannerCTA.getAttribute('href'), 'http://www.accessnyt.com/');
+    actualDrivesToURL = await BannerCTA.getAttribute('href');
     await BannerCTA.click();
 
     // Get the original window handle
@@ -47,6 +48,7 @@ async function handleNewWindowAndVerify(browser, elementUtil) {
     } else {
         console.log('New window handle not found.');
     }
+    return actualDrivesToURL;
 }
 
 module.exports = {
