@@ -1,5 +1,6 @@
 
 const expect = require('chai').expect;
+const elementUtil = require('../util/elementUtil');
 const chromeModheader = require('chrome-modheader');
 
 const generateRandomIpListsWithinRange = require('./randomeIPList');
@@ -7,18 +8,19 @@ const { handleNewWindowAndVerify } = require('./windowHandling');
 const { iterateListOfLists } = require('../config/mainPage')
 const { captureBaselineScreenshotsEyes, compareScreenshotsEyes } = require('../config/eyesSetup');
 
-const elementUtil = require('../util/elementUtil');
 
 const expectedMessage = "Activate now for unlimited articles, courtesy of The University of Georgia. No payment needed."
 const expectedHeader = 'Unlock your complimentary access.';
 const expectedCTA = 'ACTIVATE NOW';
+
+const expectedURL = 'http://www.accessnyt.com/'; 
 
 
 const ipRanges = [
     [[12, 8, 195, 96], [12, 8, 195, 127]],
     [[12, 193, 48, 128], [12, 193, 48, 191]]
 ];
-const NumberOfCheckPerRange = 1; // 1 or more
+
 
 describe('Data Layer Test', () => {
     const DATA_LAYER_URL = process.env.DATA_LAYER_URL;
@@ -104,8 +106,8 @@ describe('QA B2B Assets testing', () => {
 
     it('open the main page with ip address', async () => {
 
-        // Number of IP addresses in each list
-        const listOfLists = generateRandomIpListsWithinRange(ipRanges, NumberOfCheckPerRange);
+        // Number of checks IP addresses in each list
+        const listOfLists = generateRandomIpListsWithinRange(ipRanges, 1);
         const maxLength = Math.max(...listOfLists.map(innerArray => innerArray.length));
         // Flag to track if "Check range of IPs" has been printed
         let isFirstIteration = true;
@@ -147,7 +149,9 @@ describe('QA B2B Assets testing', () => {
         await browser.saveScreenshot('../QaTestProject/test/screenshots/wdio' + date + '.png');
 
         // Call the window handling function
+        const actualDrivesToURL = await handleNewWindowAndVerify(browser, elementUtil);
         await handleNewWindowAndVerify(browser, elementUtil);
+        expect(actualDrivesToURL).to.equal(expectedURL, `The URL should be equal to: "${expectedURL}"`);
 
     });
 });
