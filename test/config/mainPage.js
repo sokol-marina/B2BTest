@@ -15,8 +15,9 @@ async function iterateListOfLists(ipAddress) {
     
     const actualMessage = await elementUtil.getElementText('span.richText__weight--light'); //span.richText__weight--light
     const actualHeader = await elementUtil.getElementText('.welcomeAdLayout__text p span');
+    const actualButtonText = await elementUtil.getElementText('a.welcomeAdLayout__button')
 
-    return { actualMessage, actualHeader }; 
+    return { actualMessage, actualHeader, actualButtonText }; 
 
 }
 
