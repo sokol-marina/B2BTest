@@ -1,37 +1,52 @@
 const elementUtil = require('../util/elementUtil');
-const { Eyes, Target } = require('@applitools/eyes-webdriverio');
+const { Eyes, Target, BatchInfo } = require('@applitools/eyes-webdriverio');
 
 const eyes = new Eyes();
+
 
 eyes.setServerUrl(process.env.APPLITOOLS_SERVER_URL);
 eyes.setApiKey(process.env.APPLITOOLS_API_KEY);
 
+// Create a BatchInfo for desktop and mobile
+const desktopBatch = new BatchInfo('Desktop Batch');
+const mobileBatch = new BatchInfo('Mobile Batch');
+eyes.setBatch(mobileBatch);
 
-async function compareScreenshotsEyes(ipAddress) {
-    try {
-        await eyes.open(driver, 'Metered Assets New', 'Welcome Banner Test');
 
-        // Capture the current screenshot
-        await eyes.check(`IP address ${ipAddress}`, Target.region(elementUtil.getElement('.welcomeAdLayout')));
-        await eyes.close();
-    } catch (error) {
-        console.error('Error in captureScreenshotsEyes:', error);
+function setViewport(deviceType) {
+    if (deviceType === 'desktop') {
+        eyes.setViewportSize({ width: 1200, height: 800 });
+        eyes.setBatch(desktopBatch);
+    } else if (deviceType === 'mobile') {
+        eyes.setViewportSize({ width: 375, height: 667 }); // Example mobile viewport size
+        eyes.setBatch(mobileBatch);
     }
-
 }
 
-async function captureBaselineScreenshotsEyes(ipAddress) {
+async function checkDesktopAndMobileViews(ipAddress, deviceType) {
     try {
-        await eyes.open(driver, 'Metered Assets New', 'Welcome Banner Test');
-        // Capture the screenshot
-        await eyes.check(`Baseline with IP address ${ipAddress}`, Target.region(elementUtil.getElement('.welcomeAdLayout')));
+        // Check the specified view
+        await eyes.open(driver, 'Metered Assets New', `${deviceType} `);
+
+        // Set the batch based on the device type and viewport size
+        if (deviceType === 'desktop') {
+            eyes.setViewportSize({ width: 1200, height: 800 });
+            eyes.setBatch(desktopBatch);
+        } else if (deviceType === 'mobile') {
+            eyes.setViewportSize({ width: 375, height: 667 }); // Example mobile viewport size
+            eyes.setBatch(mobileBatch);
+        }
+        // Capture the current screenshot
+        await eyes.check(`${deviceType} ${ipAddress}`, Target.region(elementUtil.getElement('section.welcomeAdLayout:nth-child(4)')));
         await eyes.close();
+        console.log(`   Finished processing IP address: ${ipAddress} on ${deviceType}`);
     } catch (error) {
-        console.error('Error in captureScreenshotsEyes:', error);
+        console.error(`Error in checkViews (${deviceType}):`, error);
     }
+
+
 }
 
 module.exports = {
-    captureBaselineScreenshotsEyes,
-    compareScreenshotsEyes,
+    checkDesktopAndMobileViews,
 };
