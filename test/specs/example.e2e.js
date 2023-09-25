@@ -6,14 +6,14 @@ const chromeModheader = require('chrome-modheader');
 const generateRandomIpListsWithinRange = require('./randomeIPList');
 const { handleNewWindowAndVerify } = require('./windowHandling');
 const { iterateListOfLists } = require('../config/mainPage')
-const { captureBaselineScreenshotsEyes, compareScreenshotsEyes } = require('../config/eyesSetup');
+const { checkDesktopAndMobileViews } = require('../config/eyesSetup');
 
 
 const expectedMessage = "Activate now for unlimited articles, courtesy of The University of Georgia. No payment needed."
 const expectedHeader = 'Unlock your complimentary access.';
 const expectedCTA = 'ACTIVATE NOW';
 
-const expectedURL = 'http://www.accessnyt.com/'; 
+const expectedURL = 'http://www.accessnyt.com/';
 
 
 const ipRanges = [
@@ -117,23 +117,14 @@ describe('QA B2B Assets testing', () => {
             for (let i = 0; i < maxLength; i++) {
                 if (i < innerArrayLength) {
                     const ipAddress = innerArray[i];
-                    const { actualMessage, actualHeader } = await iterateListOfLists(ipAddress);
+                    const { actualMessage, actualHeader, actualButtonText } = await iterateListOfLists(ipAddress);
 
                     expect(actualMessage.replace("\n", " ")).to.be.equal(expectedMessage, `The Asset header should be  ${expectedMessage}`);
                     expect(actualHeader).to.equal(expectedHeader, `The Asset header should be  ${expectedHeader}`);
-                    expect(await elementUtil.getElementText('a.welcomeAdLayout__button')).to.equal(expectedCTA, `The CTA should have text: ${expectedCTA}`);
+                    expect(actualButtonText).to.equal(expectedCTA, `The CTA should have text: ${expectedCTA}`);
 
                     //Capture screenshot using Applitools Eyes
-                    if (isFirstIteration) {
-                        // Capture the first screenshot as the baseline using Applitools Eyes
-                        await captureBaselineScreenshotsEyes(ipAddress);
-                        isFirstIteration = false;
-                    } else {
-                        // Capture subsequent screenshots and compare them to the baseline
-                        await browser.pause(1000);
-                        await compareScreenshotsEyes(ipAddress);
-                    }
-                    console.log('   Finished processing IP address.');
+                    await checkDesktopAndMobileViews(ipAddress, 'mobile');
                 }
             }
         }
