@@ -1,5 +1,5 @@
 
-const elementUtil = require('../util/elementUtil');
+const elementUtil = require('../../../utils/elementUtil');
 const chromeModheader = require('chrome-modheader');
 
 
@@ -17,7 +17,7 @@ async function iterateListOfLists(ipAddress) {
     const actualHeader = await elementUtil.getElementText('.welcomeAdLayout__text p span');
     const actualButtonText = await elementUtil.getElementText('a.welcomeAdLayout__button')
 
-    return { actualMessage, actualHeader, actualButtonText }; 
+    return { actualMessage, actualHeader, actualButtonText}; 
 
 }
 

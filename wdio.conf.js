@@ -4,6 +4,7 @@ exports.config = {
     user: 'marinasukhova_5fyuFN',
     key: 'zv7eCWzcRo3qnKivf3vr',
     //services: [['browserstack', { browserstackLocal: true }]],
+    services: ['chromedriver'],
 
     logLevel: 'error',
     //
@@ -30,13 +31,13 @@ exports.config = {
     // will be called from there.
     //
     specs: [
-        './test/specs/**/*.js',
-        './test/specs/example.e2e.js'
+        './frontend/test/specs/**/*.js',
+        './frontend/test/specs/test_b2b.js'
     ],
     suites: {
 
         example: [
-            './test/specs/example.e2e.js',
+            './frontend/test/specs/test_b2b.js'
         ]
     },
     // Patterns to exclude.
@@ -119,7 +120,7 @@ exports.config = {
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
-    services: ['chromedriver'],
+    
 
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
@@ -143,8 +144,8 @@ exports.config = {
     // see also: https://webdriver.io/docs/dot-reporter
     reporters: ['spec', ['allure', {
         outputDir: './allure-results',
-        disableWebdriverStepsReporting: false,
-        disableWebdriverScreenshotsReporting: false,
+        disableWebdriverStepsReporting: true,
+        disableWebdriverScreenshotsReporting: true,
     }]],
 
 
@@ -153,7 +154,7 @@ exports.config = {
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
-        timeout: 500000
+        timeout: 300000
     },
     //
     // =====
