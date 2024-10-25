@@ -1,6 +1,9 @@
 
 const expect = require('chai').expect;
 const elementUtil = require('../../../utils/elementUtil');
+
+const { GoogleSpreadsheet } = require("google-spreadsheet");
+
 const { eyes, checkElementView } = require('../config/eyesSetup');
 const { handleNewWindowAndVerify } = require('../../../utils/windowHandling');
 const { iterateListOfLists } = require('../../src/pages/mainPage');
@@ -20,8 +23,8 @@ const expectedCTA = 'ACTIVATE NOW';
 
 
 const ipRanges = [
-    [[147,88,207,0], [147,88,254,255]
-    //[78, 108, 170, 0][78, 108, 170, 31],
+    [[147, 88, 207, 0], [147, 88, 254, 255]
+        //[78, 108, 170, 0][78, 108, 170, 31],
     ]
 ];
 
@@ -32,8 +35,24 @@ describe('QA B2B Assets testing', () => {
     const ipAddresses = getRandomIPAddresses(ipRanges);
 
     ipAddresses.forEach(({ ipAddress }) => {
-        it(`should perform tests for IP address ${ipAddress}`, async () => {
+        // first, gathering all the needed data (expected results) for testing
+        before("should get the data from googlesheet (Source Doc)", () => {
+            async function accessSpreadcheet() {
+                try {
+                    const doc = new GoogleSpreadsheet("1LNFtcg_JMI6KIu42CTWd3yy2iO0522NuSID38Q80EEY");
+                   await doc.useServiceAccountAuth(require('../../../client-secret.json'));
+                    await doc.loadInfo();
 
+                    const sheet = doc.sheetsByIndex[0]
+                    console.log("========================== !process.env.docTitle: ");
+
+                } catch (err) {
+                    console.log("========================== !ERROR: ", err);
+                };
+            }
+            return accessSpreadcheet();
+        });
+        it(`should perform tests for IP address ${ipAddress}`, async () => {
 
             // perform other actions and verifications 
             const { actualMessage, actualHeader, actualButtonText } = await iterateListOfLists(ipAddress);
