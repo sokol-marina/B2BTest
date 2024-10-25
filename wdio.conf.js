@@ -1,8 +1,8 @@
 const chromeModheader = require('chrome-modheader');
 
 exports.config = {
-    user: 'marinasukhova_5fyuFN',
-    key: 'zv7eCWzcRo3qnKivf3vr',
+    user: process.env.BROWSERSTACK_USERNAME,
+    key: process.env.BROWSERSTACK_ACCESS_KEY,
     services: [['browserstack', { browserstackLocal: true }]],
     //services: ['chromedriver'],
 
